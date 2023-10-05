@@ -1,0 +1,3 @@
+PIL
+docx
+-e .
