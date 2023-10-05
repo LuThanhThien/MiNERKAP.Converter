@@ -1,0 +1,1 @@
+Resize image and export to word
