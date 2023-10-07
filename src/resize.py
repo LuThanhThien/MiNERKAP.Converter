@@ -11,61 +11,49 @@ from src.logger import logging
 from src.utils import *
 from src.config import IMG_EXTENSIONS
 
-
 class Resize:
     def __init__(self) -> None:
         self.output_folder:str = None
-        self.input_folder:str = None
-        self.repetition_lines:int = None
-        self.images_list:list = []
-
-    def add_images_button(self):
+        self.selected_image_paths:list = []
+        self.repetition_images:int = None
         
-        return 
         
     # Define a function to handle the Convert button click
-    def convert_button_click(self, input_folder_var, output_folder_var, repetition_images):
-        self.input_folder = input_folder_var.get()
+    def convert_button_click(self, selected_image_paths, output_folder_var, repetition_images_var):
         self.output_folder = output_folder_var.get()
-        repetition_lines_str = repetition_images.get()
-        loggingInfo("User chose parameters")
+        self.selected_image_paths = selected_image_paths
+        repetition_images_str = repetition_images_var.get()
 
-        if not self.input_folder:
-            messagebox.showwarning("Warning", f"Please, select the input folder!")
+        if not self.output_folder:
+            messagebox.showwarning("Warning", f"Please, select the output folder!")
+            return
+        
+        if not os.path.exists(self.output_folder):
+            os.makedirs(self.output_folder)
+
+        if not self.selected_image_paths:
+            messagebox.showwarning("Warning", f"No image has been selected!")
             return
 
-        if not repetition_lines_str:
+        if not repetition_images_str:
             messagebox.showwarning("Warning", "Please enter a value for Repetition Lines.")
             return
 
         try:
-            self.repetition_lines = int(repetition_lines_str)  
+            self.repetition_images = int(repetition_images_str)  
         except Exception as e:
             messagebox.showwarning("Warning", "Repetition Lines must be a valid integer.")
-            CustomException(e, sys)
             return
 
         self.create_word_document()
 
+
     def create_word_document(self) -> None:
         doc = Document()
         exceeding_images = []
-        
-        if not os.path.exists(self.output_folder):
-            os.makedirs(self.output_folder)
-        
-        image_files = []
-        for filename in os.listdir(self.input_folder):
-            if filename.lower().endswith(tuple(IMG_EXTENSIONS)):
-                image_files.append(os.path.join(self.input_folder, filename))
-        
-        if not image_files:
-            messages = f"No image files found in the input folder!"
-            messagebox.showwarning("Warning", messages)
-            loggingInfo(messages)
-            return
 
-        loggingInfo(f"Load {len(image_files)} images completely from {self.output_folder}")
+
+        loggingInfo(f"Converting {len(self.selected_image_paths)} images in process.")
         
         # Set page margins (0.5 inch for all borders)
         section = doc.sections[0]
@@ -78,26 +66,27 @@ class Resize:
         output_path = os.path.join(self.output_folder, f"{current_time}.docx")
 
         
-        for image_file in image_files:
+        for image_path in self.selected_image_paths:
             
-            is_exceed = is_exceed_limit(image_file)
+            is_exceed = is_exceed_limit(image_path)
             
             if not is_exceed and len(exceeding_images)!=0:
-                exceeding_images.append(image_file)    
+                exceeding_images.append(image_path)    
                 continue
             
             if not is_exceed:         
-                exceeding_images.append(image_file)   
+                exceeding_images.append(image_path)   
                 stop_sign = confirm_large_images(exceeding_images)
 
                 if not stop_sign:
                     messagebox.showinfo("Info", "Operation canceled.")
+                    loggingInfo("User cancaled converting process due to high resolution images.")
                     return
             
                 continue
             
             # Crop the image to square and convert to RGB
-            img = crop_to_square(image_file)
+            img = crop_to_square(image_path)
             
             if img is None:
                 continue  # Skip this image and continue with the next one
@@ -107,21 +96,24 @@ class Resize:
             
             # Repeat the image in the same line
             run = doc.add_paragraph().add_run()
-            for _ in range(self.repetition_lines):
+            for _ in range(self.repetition_images):
                 run.add_picture("temp_square_image.jpg", width=Mm(16), height=Mm(16))
                 run.add_text(" ")
             
             
             os.remove("temp_square_image.jpg")  # Remove the temporary file
         
+        if len(exceeding_images)>0:
+            loggingInfo(f"Found {len(exceeding_images)} high resolution images")
         
-        if len(exceeding_images) == len(image_files):
+        if len(exceeding_images) == len(self.selected_image_paths):
             messagebox.showwarning("Warning", "All images are exceeding the maximum size. \
                                    Please, choose another folder or resize your images!")
-            loggingInfo("Folder contains high resolution images")
-            
-        doc.save(output_path)
-        messagebox.showinfo("Success", f"Document saved to:\n{output_path}")
+            loggingInfo("Converting process stopped. All images are high resolution.")
+        else:    
+            doc.save(output_path)
+            messagebox.showinfo("Success", f"Document saved to:\n{output_path}")
+            loggingInfo(f"Converted {len(self.selected_image_paths) - len(exceeding_images)} images completely. Document saved to:\n{output_path}")
         
 
     

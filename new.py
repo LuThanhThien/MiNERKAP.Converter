@@ -3,7 +3,7 @@ import customtkinter as ctk
 from tkinter import filedialog
 from PIL import Image, ImageTk, ImageOps
 from src.config import *
-
+Image.MAX_IMAGE_PIXELS = 2000000000
 
 def open_images():
     file_paths = filedialog.askopenfilenames(filetypes=[("Image files", "*.jpg *.jpeg *.png *.gif *.bmp *.tiff *.ppm *.pgm")])
@@ -76,5 +76,9 @@ root.resizable(False, False)
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("dark-blue")
 
+
+select_output_folder_button = ctk.CTkButton(root, text="Select folder", font=CUSTOMFONT_H2, width=8, height=28, \
+                                        command=lambda: open_images())
+select_output_folder_button.grid()
 
 root.mainloop()

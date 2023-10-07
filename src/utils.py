@@ -14,23 +14,9 @@ def loggingInfo(text_to_print:str) -> logging.info:
     return logging.info(text_to_print)
 
 
-def format_time(seconds:int) -> str:
-    minutes, seconds = divmod(seconds, 60)
-    if minutes == 0:
-        results = f'{seconds:.3f} second(s)'
-    else: results = f'{minutes:.0f} minute(s) {seconds:.3f} second(s)'
-    return results
-
-
-# Function to reset the listbox focus when an item is clicked
-def reset_focus(event) -> None:
-    event.widget.selection_clear(0, tk.END)
-    event.widget.focus_set()
-
-
 # Function to handle folder selection
 def select_folder(folder_var, image_listbox) -> None:
-    folder_path = filedialog.askopenfilenames(filetypes=IMG_TYPES)
+    folder_path = filedialog.askdirectory()
     if folder_path:
         folder_var.set(folder_path)
         # Clear existing entries from the CTkListbox
@@ -42,10 +28,28 @@ def select_folder(folder_var, image_listbox) -> None:
             image_listbox.insert(tk.END, os.path.basename(image_file))
 
 
+# Function to add image files to the list of selected files
+def select_images(selected_image_paths, selected_images_listbox):
+    """
+    This function allow users to add images to the list
+    """
+    file_paths = filedialog.askopenfilenames(filetypes=IMG_TYPES)
+    if file_paths:
+        for file_path in file_paths:
+            if file_path not in selected_image_paths:
+                selected_image_paths.append(file_path)
+                image_name = os.path.basename(file_path)
+                selected_images_listbox.insert(tk.END, image_name)
+
+
+
 # Function to check if an image exceeds the size limit
-def is_exceed_limit(image_file:str) -> bool:
+def is_exceed_limit(image_path:str) -> bool:
+    """
+    This helps converting process avoid large resolution/size images
+    """
     try:
-        _ = Image.open(image_file)
+        _ = Image.open(image_path)
         return True
     except Exception as e:
         return False
@@ -53,6 +57,10 @@ def is_exceed_limit(image_file:str) -> bool:
 
 # Function to confirm with the user whether to continue with images exceeding the size limit
 def confirm_large_images(exceeding_images:list) -> bool:
+    """
+    This function araise when there is an image exceeding limit size found.
+    Give user options whether to continue with passing those images or stop the converting process.
+    """
     if not exceeding_images:
         return True  # No images exceeded the size limit, continue with the process
 
@@ -67,7 +75,7 @@ def confirm_large_images(exceeding_images:list) -> bool:
 # Function to list image files in a folder
 def list_image_files(folder_path:str) -> list:
     """
-        This function list out all the images with extension in IMG_EXTENSIONS in the input folder
+    This function list out all the images with extension in IMG_EXTENSIONS in the input folder
     """
     
     image_files = []
@@ -80,8 +88,11 @@ def list_image_files(folder_path:str) -> list:
 
 
 # Function to crop an image to square
-def crop_to_square(image_file:BytesIO) -> Image.Image:
-        img = Image.open(image_file)
+def crop_to_square(image_path:BytesIO) -> Image.Image:
+        """
+        This function crop an image into a square form 
+        """
+        img = Image.open(image_path)
 
         if img.width != img.height:
             min_dimension = min(img.width, img.height)
@@ -95,18 +106,13 @@ def crop_to_square(image_file:BytesIO) -> Image.Image:
 
         return img
 
-# Function to add image files to the list of selected files
-def add_image_files(selected_image_files, selected_files_listbox):
-    file_paths = filedialog.askopenfilenames(
-        filetypes=[("Image files", "*.jpg;*.jpeg;*.png;*.gif;*.bmp"), ("All Files", "*.*")]
-    )
-    for file_path in file_paths:
-        selected_image_files.append(file_path)
-        selected_files_listbox.insert(tk.END, os.path.basename(file_path))
 
+def delete_all(selected_image_paths, image_listbox):
+    selected_image_paths.clear()
+    image_listbox.delete(0, tk.END)
 
 def open_images(root):
-    file_paths = filedialog.askopenfilenames(filetypes=[("Image files", "*.jpg *.jpeg *.png *.gif *.bmp *.tiff *.ppm *.pgm")])
+    file_paths = filedialog.askopenfilenames(filetypes=IMG_TYPES)
     if file_paths:
         images = []
         image_names = []
