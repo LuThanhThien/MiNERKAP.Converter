@@ -1,4 +1,7 @@
 pillow
 python-docx
-tkinter
+tk
+dill
+customtkinter
+CTkListbox 
 -e .
