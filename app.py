@@ -1,7 +1,7 @@
 import os
 import tkinter as tk
 from tkinter import PhotoImage
-from src.resize import Resize
+from src.components.Resizer import Resizer
 from src.utils import *
 import customtkinter as ctk
 from CTkListbox import *
@@ -12,7 +12,7 @@ ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("dark-blue")
 
 # GUI
-resizer = Resize()
+resizer = Resizer()
 app = ctk.CTk()
 app.title("Image to Word Converter")
 app.resizable(False, False) # fixed window size
