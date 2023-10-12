@@ -1,11 +1,12 @@
-import os
+import os, sys
 import tkinter as tk
 from PIL import Image, ImageTk, ImageOps
 from io import BytesIO
-from tkinter import filedialog, messagebox, ttk
+from tkinter import filedialog
+import customtkinter as ctk
 from PIL import Image
 from src.logger import logging
-import customtkinter as ctk
+from src.exception import CustomException
 from src.config import *
 
 
@@ -15,76 +16,16 @@ def loggingInfo(text_to_print:str) -> logging.info:
 
 
 # Function to handle folder selection
-def select_folder(folder_var, image_listbox) -> None:
-    folder_path = filedialog.askdirectory()
-    if folder_path:
-        folder_var.set(folder_path)
-        # Clear existing entries from the CTkListbox
-        image_listbox.delete(0, image_listbox.size())  # Clear all existing entries
-        
-        # List image files in the selected folder and update the CTkListbox
-        image_files = list_image_files(folder_path)
-        for image_file in image_files:
-            image_listbox.insert(tk.END, os.path.basename(image_file))
-
-
-# Function to add image files to the list of selected files
-def select_images(selected_image_paths, selected_images_listbox):
+def select_folder(folder_var) -> None:
     """
-    This function allow users to add images to the list
-    """
-    file_paths = filedialog.askopenfilenames(filetypes=IMG_TYPES)
-    if file_paths:
-        for file_path in file_paths:
-            if file_path not in selected_image_paths:
-                selected_image_paths.append(file_path)
-                image_name = os.path.basename(file_path)
-                selected_images_listbox.insert(tk.END, image_name)
-
-
-
-# Function to check if an image exceeds the size limit
-def is_exceed_limit(image_path:str) -> bool:
-    """
-    This helps converting process avoid large resolution/size images
+    This function as button to select the folder (for output specifically)
     """
     try:
-        _ = Image.open(image_path)
-        return True
+        folder_path = filedialog.askdirectory()
+        if folder_path:
+            folder_var.set(folder_path)
     except Exception as e:
-        return False
-
-
-# Function to confirm with the user whether to continue with images exceeding the size limit
-def confirm_large_images(exceeding_images:list) -> bool:
-    """
-    This function araise when there is an image exceeding limit size found.
-    Give user options whether to continue with passing those images or stop the converting process.
-    """
-    if not exceeding_images:
-        return True  # No images exceeded the size limit, continue with the process
-
-    # Generate a message with the list of exceeding images
-    message = f"Found images exceed the size limit and will be excluded.\n\n"
-    message += "\n\nDo you want to continue?"
-
-    response = messagebox.askquestion("Image Size Warning", message)
-    return response.lower() == "yes"
-
-
-# Function to list image files in a folder
-def list_image_files(folder_path:str) -> list:
-    """
-    This function list out all the images with extension in IMG_EXTENSIONS in the input folder
-    """
-    
-    image_files = []
-
-    for filename in os.listdir(folder_path):
-        if any(filename.lower().endswith(ext) for ext in IMG_EXTENSIONS):
-            image_files.append(os.path.join(folder_path, filename))
-
-    return image_files
+        raise CustomException(e, sys)
 
 
 # Function to crop an image to square
@@ -107,9 +48,6 @@ def crop_to_square(image_path:BytesIO) -> Image.Image:
         return img
 
 
-def delete_all(selected_image_paths, image_listbox):
-    selected_image_paths.clear()
-    image_listbox.delete(0, tk.END)
 
 def open_images(root):
     file_paths = filedialog.askopenfilenames(filetypes=IMG_TYPES)

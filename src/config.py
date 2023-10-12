@@ -1,5 +1,7 @@
+import pyglet, os
+
 # IMAGE PIPELINE
-ICON_PATH = 'src//img//logo_white.png'
+ICON_PATH = 'src//img//iconwhite.png'
 IMG_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".ppm", ".pgm"]
 
 IMG_TYPES = [("Image files", ';'.join(["*"+ex for ex in IMG_EXTENSIONS]))] + [("All files", "*.*")]
@@ -32,18 +34,31 @@ for shape, dimensions in IMG_SHAPES.items():
     else:
         SHAPE_RATIOS[shape] = COMBO[1] / COMBO[0]
 
+DEFAULT_PARAMS = {
+    'copies': 11,
+    'shape': 'Square'
+}
+DEFAULT_OUTPUT = os.path.expanduser('~/Desktop')
 
 # GUI
 # Font
-CUSTOMFONT_H2 = ('Tahoma', 12)
-CUSTOMFONT_H1 = ('Tahoma', 14)
-CUSTOMFONT_H0 = ('Tahoma', 16)
+pyglet.font.add_file('C:\\Users\\USER\\Music\\PROGRAMING\\Projects\\20231005-resize_app\\src\\fonts\\Montserrat-Bold.ttf')
+CUSTOMFONT_H2 = ('Montserrat-Bold', 12)
+CUSTOMFONT_H1 = ('Montserrat-Bold', 14)
+CUSTOMFONT_H0 = ('Montserrat-Bold', 16)
 
 # Fixed width and height for the displayed images
 IMAGE_WIDTH = 200
 IMAGE_HEIGHT = 200
 NUM_COLUMNS = 5
 MAX_NAME_LENGTH = 20
+
+# padding widgets
+PADX_START, PADX_END = (15, 5), (5, 15)
+PADY_START, PADY_END = (15, 5), (5, 15)
+
+PADX = (0, 5)
+PADY = (0, 5)
 
 # canvas size
 CANVAS_WIDTH = (IMAGE_HEIGHT + 10) * NUM_COLUMNS + 5

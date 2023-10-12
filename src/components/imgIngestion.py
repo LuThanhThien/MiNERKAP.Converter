@@ -1,5 +1,6 @@
 import os, sys
 from PIL import Image
+from tkinter import messagebox
 from src.logger import logging
 from src.exception import CustomException
 from src.utils import *
@@ -34,7 +35,7 @@ class ImageIngestion:
         self.yc:int
 
 
-    def initiate_img(self, img:Image.Image,
+    def initiate_image_obj(self, img:Image.Image,
                   px_height:int, xc:int, yc:int) -> None:
         try:
             self.img = img
@@ -90,9 +91,10 @@ class ImageIngestion:
         except Exception as e:
             raise CustomException(e, sys)
 
-    
+
+## TEST     
 if __name__=="__main__":
-    paths = ["..\\img\\bennett 1.jpg", "..\\img\\raiden 2.jpg"]
+    paths = ["..\\img\\sample1.jpg", "..\\img\\sample2.jpg"]
     doc = Document()
         
     # Set page margins (0.5 inch for all borders)
@@ -120,13 +122,12 @@ if __name__=="__main__":
 
         tool = ImageIngestion()
         
-        tool.initiate_img(img, px_height=min(1000, iheight), xc=xc, yc=yc)
+        tool.initiate_image_obj(img, px_height=min(1000, iheight), xc=xc, yc=yc)
 
         crop_imgs = tool.crop_by_shape(shape='Combo')
         
 
         for key, img in crop_imgs.items():
-            
             img.save("temp_square_image.jpg")  # Save the square image temporarily
             
             if key != 'Win':
