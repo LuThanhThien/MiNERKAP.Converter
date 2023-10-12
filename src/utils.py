@@ -3,6 +3,7 @@ import tkinter as tk
 from PIL import Image, ImageTk, ImageOps
 from io import BytesIO
 from tkinter import filedialog
+from tkinter import messagebox
 import customtkinter as ctk
 from PIL import Image
 from src.logger import logging
@@ -27,86 +28,62 @@ def select_folder(folder_var) -> None:
     except Exception as e:
         raise CustomException(e, sys)
 
+def confirm_delete_images(detype:str):
+    try:
+        if detype == 'all':
+            # Generate a message with the list of exceeding images
+            message = "All images will be deleted. Do you want to continue?"
 
-# Function to crop an image to square
-def crop_to_square(image_path:BytesIO) -> Image.Image:
-        """
-        This function crop an image into a square form 
-        """
-        img = Image.open(image_path)
-
-        if img.width != img.height:
-            min_dimension = min(img.width, img.height)
-            left = (img.width - min_dimension) / 2
-            top = (img.height - min_dimension) / 2
-            right = (img.width + min_dimension) / 2
-            bottom = (img.height + min_dimension) / 2
-            img = img.crop((left, top, right, bottom))
-        
-        img = img.convert("RGB")
-
-        return img
+            response = messagebox.askquestion("Delete all images", message)
+        return response.lower() == "yes"
+    
+    except Exception as e:
+        raise CustomException(e, sys)
+    
+# Function to check if an image exceeds the size limit
+def is_exceed_limit(image_path:str) -> bool:
+    """
+    This helps converting process avoid large resolution/size images
+    """
+    try:
+        _ = Image.open(image_path)
+        return True
+    except Exception as e:
+        return False
 
 
+# Function to confirm with the user whether to continue with images exceeding the size limit
+def confirm_large_images(exceeding_images:list) -> bool:
+    """
+    This function araise when there is an image exceeding limit size found.
+    Give user options whether to continue with passing those images or stop the converting process.
+    """
+    try:
+        if not exceeding_images:
+            return True  # No images exceeded the size limit, continue with the process
 
-def open_images(root):
-    file_paths = filedialog.askopenfilenames(filetypes=IMG_TYPES)
-    if file_paths:
-        images = []
-        image_names = []
+        # Generate a message with the list of exceeding images
+        message = f"Found images exceed the size limit and will be excluded.\n\n"
+        message += "\n\nDo you want to continue?"
 
-        for file_path in file_paths:
-            image = Image.open(file_path)
-            
-            # Add padding for those images not square
-            width, height = image.size
-            if width > height:
-                padding = (width - height) // 2
-                image = ImageOps.expand(image, border=(0, padding, 0, padding), fill='white')
-            elif height > width:
-                padding = (height - width) // 2
-                image = ImageOps.expand(image, border=(padding, 0, padding, 0), fill='white')
-            
+        response = messagebox.askquestion("Image Size Warning", message)
+        return response.lower() == "yes"
 
-            # Resize the image to the fixed width and height
-            image = image.resize((IMAGE_WIDTH, IMAGE_HEIGHT), Image.ANTIALIAS)
-            
-            photo = ImageTk.PhotoImage(image)
-            images.append(photo)
+    except Exception as e:
+        raise CustomException(e, sys)
 
-            # Get the base filename (without path) for the image
-            image_name = os.path.basename(file_path)
-            image_names.append(image_name)
 
-         # Create a Canvas widget for the scrollable area
-        canvas = ctk.CTkCanvas(root, width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
-        canvas.grid(row=0, column=0)
+def crop_img(img:Image.Image, px_width, px_height, xc, yc) -> Image.Image:
+        try:
+            # Calculate the crop box coordinates
+            left = xc - (px_width / 2)
+            top = yc - (px_height / 2)
+            right = xc + (px_width / 2)
+            bottom = yc + (px_height / 2)
+            # Crop the image
+            cropped_img = img.crop((left, top, right, bottom))
+            cropped_img = cropped_img.convert("RGB")
 
-        # Create a Frame inside the Canvas to hold the images
-        frame = ctk.CTkFrame(canvas)
-        canvas.create_window((0, 0), window=frame, anchor='nw')
-
-        # Create a grid of labels to display the resized images
-        for i, (photo, name) in enumerate(zip(images, image_names)):
-            row = 2 * (i // NUM_COLUMNS)
-            col = i % NUM_COLUMNS
-            
-            if len(name)>MAX_NAME_LENGTH:
-                name = name[:MAX_NAME_LENGTH] + "..." + name.split('.')[-1]
-            
-            image_label = ctk.CTkLabel(frame, image=photo)
-            image_label.image = photo
-            image_label.grid(row=row, column=col, padx=5, pady=5)
-
-            name_label = ctk.CTkLabel(frame, text=name)
-            name_label.grid(row=row+1, column=col, padx=5)  # Place the name label below the image label
-
-         # Add a scrollbar for the Canvas to enable scrolling
-        scrollbar = ctk.CTkScrollbar(root, orient='vertical', command=canvas.yview)
-        scrollbar.grid(row=0, column=1, sticky='ns')
-        canvas.config(yscrollcommand=scrollbar.set)
-
-        # Bind the Canvas to the scrolling event
-        def on_canvas_configure(event):
-            canvas.configure(scrollregion=canvas.bbox("all"))
-        frame.bind("<Configure>", on_canvas_configure)
+            return cropped_img
+        except Exception as e:
+            raise CustomException(e, sys)

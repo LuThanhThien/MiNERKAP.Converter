@@ -8,6 +8,11 @@ import customtkinter as ctk
 from src.config import *
 from src.components.imgConverter import Converter
 from src.components.imgFrame import ImageFrame
+import warnings
+import time
+
+# Filter out the specific warning message
+warnings.filterwarnings("ignore")
 
 # APPERANCE
 ctk.set_appearance_mode("dark")
@@ -18,108 +23,127 @@ class App(ctk.CTk):
             super().__init__()
 
             # GUI
-            self.resizer = Converter()
+            self.converter = Converter()
+            self.converter.initiate_converter(self)
             self.imgFrame = ImageFrame()
+            self.imgFrame.initiate_frame_obj(self)
             self.title("Image to Word Converter")
             self.resizable(False, False) # fixed window size
-
-            # Variables to store folder paths
-            self.inputImages = {
-                'path': [],
-                'shape': [],
-                'copies': [],
-                'px_width': [],
-                'px_height': [],
-                'xc': [],
-                'yc': [],
-                'selected': [],
-            }
             
-            # frame 1: parameters frame --------------------------------------------------
+            # row 0, frame 1: parameters frame ----------------------------------------------------------------------------------
             self.param_frame = ctk.CTkFrame(self)
             self.param_frame.grid(row=0, column=0, padx=(15, 15), pady=(15, 0), sticky="nsew")
-
-            # row 1 
-            # Create and configure widgets for selecting output folder
-            self.output_folder_var = ctk.StringVar(value=DEFAULT_OUTPUT)  # Set the desktop folder as the default value
-            self.output_folder_label = ctk.CTkLabel(master=self.param_frame, text="Output:", font=CUSTOMFONT_H1)
-            self.output_folder_label.grid(row=0, column=0, sticky="w", padx=PADX_START, pady=PADY_START)
-
-            self.output_folder_entry = ctk.CTkEntry(master=self.param_frame, width=400, textvariable=self.output_folder_var, state="readonly",\
-                                                     font=CUSTOMFONT_H1)
-            self.output_folder_entry.grid(row=0, column=1, padx=PADX, pady=PADY_START, columnspan=3, sticky="w")
-
-            self.select_output_folder_button = ctk.CTkButton(master=self.param_frame, text="Select folder", width=8, height=28, font=CUSTOMFONT_H1,\
-                                                    command=lambda: select_folder(self.output_folder_var))
-            self.select_output_folder_button.grid(row=0, column=5, sticky='w', padx=PADX_END, pady=PADY_START)
-
-            # row 2
+            
             # Add a label and entry for user input
             self.copies_label = ctk.CTkLabel(master=self.param_frame, text="Copies:", font=CUSTOMFONT_H1)
-            self.copies_label.grid(row=1, column=0, padx=PADX_START, pady=PADY_END, sticky='w')
+            self.copies_label.grid(row=0, column=0, padx=PADX_ONI, pady=PADY_ONI, sticky='w')
 
-            self.copies_var = ctk.StringVar(value=DEFAULT_PARAMS['copies'])
-            self.copies_entry = ctk.CTkEntry(master=self.param_frame, width=50, textvariable=self.copies_var, font=CUSTOMFONT_H1)
-            self.copies_entry.grid(row=1, column=1, padx=PADX, pady=PADY_END, sticky="w")
+            self.copies_var = ctk.StringVar()
+            self.copies_entry = ctk.CTkEntry(master=self.param_frame, width=60, textvariable=self.copies_var, font=CUSTOMFONT_H1)
+            self.copies_entry.grid(row=0, column=1, padx=0, pady=PADY_ONI, sticky="nsew")
 
 
             # Create a label for the shape selection
             self.shape_label = ctk.CTkLabel(master=self.param_frame, text="Shape:", font=CUSTOMFONT_H1)
-            self.shape_label.grid(row=1, column=2, padx=PADX, pady=PADY_END, sticky='w')
+            self.shape_label.grid(row=0, column=2, padx=PADX_ONI, pady=PADY_ONI, sticky='e')
 
-            # Create a Combobox for shape selection
-            self.shape_combobox = ctk.CTkComboBox(master=self.param_frame, values=list(IMG_SHAPES.keys()), font=CUSTOMFONT_H1)
-            self.shape_combobox.grid(row=1, column=3, padx=PADX, pady=PADY_END, sticky="w")
+            # Create a options for shape selection
+            self.shape_var = ctk.StringVar()
+            self.shape_options = ctk.CTkOptionMenu(master=self.param_frame, values=list(IMG_SHAPES.keys()), font=CUSTOMFONT_H1,\
+                                                   variable=self.shape_var)
+            self.shape_options.grid(row=0, column=3, padx=0, pady=PADY_ONI, sticky="w")
 
-            # frame 2: Button and list box
-            self.imgbox_frame = ctk.CTkFrame(self)
-            self.imgbox_frame.grid(row=1, column=0, padx=(15, 15), pady=(10, 0), sticky="nsew")
+            # Create and configure widgets for selecting output folder
+            self.output_folder_var = ctk.StringVar(value=DEFAULT_OUTPUT)  # Set the desktop folder as the default value
+            self.output_folder_label = ctk.CTkLabel(master=self.param_frame, text="Output:", font=CUSTOMFONT_H1)
+            self.output_folder_label.grid(row=0, column=4, sticky="w", padx=(40,15), pady=PADY_ONI)
 
-            # row 3
-            self.select_folder_button = ctk.CTkButton(master=self.imgbox_frame, text="Choose images", width=120, height=40, font=CUSTOMFONT_H1,\
-                                            command=lambda: self.imgFrame.add_images())
-            self.select_folder_button.grid(row=2, column=0, padx=(10, 5), pady=(10, 10), sticky='w')
+            self.output_folder_entry = ctk.CTkEntry(master=self.param_frame, width=500, textvariable=self.output_folder_var,\
+                                                     state="readonly", font=CUSTOMFONT_H1)
+            self.output_folder_entry.grid(row=0, column=5, padx=0, pady=PADY_ONI, columnspan=3, sticky="w")
 
-            # open_button = ctk.CTkButton( text="Open Images", command=open_images(app))
-            # open_button.grid()
+            self.select_output_folder_button = ctk.CTkButton(master=self.param_frame, text="Select folder", width=8, height=28, font=CUSTOMFONT_H1,\
+                                                    command=self.select_output_click)
+            self.select_output_folder_button.grid(row=0, column=9, sticky='w', padx=PADX_ONI, pady=PADY_ONI)
+
+
+            # row 1 ----------------------------------------------------------------------------------
+            self.add_images_button = ctk.CTkButton(master=self, text="Add images", width=120, height=40,\
+                                                    font=CUSTOMFONT_H1, command=self.add_images_click)
+            self.add_images_button.grid(row=1, column=0, padx=PADX_START, pady=PADY_START, sticky='w')
+
 
             # Create the Delete all images button
-            self.delete_all_button = ctk.CTkButton(master=self.imgbox_frame, text="Delete All", width=120, height=40, font=CUSTOMFONT_H1, \
-                                            command=lambda: self.imgFrame.delete_images(detype='all'))
-            self.delete_all_button.grid(row=2, column=1, padx=(0, 5), pady=(10, 10), sticky="w")
+            self.delete_all_button = ctk.CTkButton(master=self, text="Delete All", width=120, height=40,\
+                                                   font=CUSTOMFONT_H1, command=self.delete_click)
+            self.delete_all_button.grid(row=1, column=0, padx=(120+40,5), pady=PADX_START, sticky="w")
+    
 
-            # Create a listbox with a specific height and width
+            # row 2, frame 2: Images frame ----------------------------------------------------------------------------------
+            # Trace for var change 
+            self.copies_var.trace('w', self.var_change)
+            self.shape_var.trace('w', self.var_change)
 
-            self.image_listbox = tk.Listbox(master=self.imgbox_frame, selectmode=tk.MULTIPLE, font=CUSTOMFONT_H0)
-            self.image_listbox.grid(row=3, column=0, padx=10, pady=10, columnspan=6, sticky="nsew")
+            self.scrollImageFrame = ctk.CTkScrollableFrame(self, width=CANVAS_WIDTH-150, height=CANVAS_HEIGHT)
+            self.scrollImageFrame.grid(row=2, column=0, padx=(15, 15), pady=(15, 0), sticky="nsew")
 
-            # Initiate image frame for image management
-            self.imgFrame.initiate_frame_obj(img_listbox=self.image_listbox, default_copies=self.copies_entry.get(),\
-                                              default_shape=self.shape_combobox.get())
-            self.image_listbox = self.imgFrame.img_listbox
-
-            # Create a scrollbar for the listbox
-            self.scrollbar = tk.Scrollbar(master=self.imgbox_frame, orient=tk.VERTICAL, command=self.image_listbox.yview)
-            self.scrollbar.grid(row=3, column=6, sticky="nsw")
-            self.image_listbox.configure(yscrollcommand=self.scrollbar.set)
-
-            # row 4 --------------------------------------------------
+            # row 3 ----------------------------------------------------------------------------------
             # Create the Convert button with the new function
-            self.convert_button = ctk.CTkButton(master=self.imgbox_frame, text="Convert to Docx", height=40, width=120, font=CUSTOMFONT_H1,\
-                                    command=lambda: self.resizer.convert_button_click(self.imgFrame.inputImages,\
-                                                                                       self.output_folder_var, self.copies_entry))
-            self.convert_button.grid(row=4, column=0, padx=10, pady=10)    
+            self.convert_button = ctk.CTkButton(master=self, text="Convert to Docx", height=40, width=120, font=CUSTOMFONT_H1,\
+                                    command=self.convert_click)
+            self.convert_button.grid(row=3, column=0, columnspan=2, padx=10, pady=10)    
 
 
-        # Function to update the selected shape
-        def update_shape(self, event):
-            selected_shape = self.shape_combobox.get()
-            if selected_shape in IMG_SHAPES:
-                # Use IMG_SHAPES[selected_shape] to access the selected shape's dimensions
-                print(f"Selected Shape: {selected_shape}, Dimensions: {IMG_SHAPES[selected_shape]}")
-            else:
-                print("Invalid shape selected")
+        # frame functions    
+        def ScrollableImageFrame(self):
+            # Delete old widgets in frame
+            for widget in self.scrollImageFrame.grid_slaves():
+                # Remove the widget from the grid
+                widget.destroy()    
+            
+            # Reset frame
+            self.scrollImageFrame = ctk.CTkScrollableFrame(self, width=CANVAS_WIDTH-150, height=CANVAS_HEIGHT)
+            self.scrollImageFrame.grid(row=2, column=0, padx=(15, 15), pady=(15, 0), sticky="nsew")
+
+            # Create a grid of labels to display the resized images
+            for i, (photo, name) in enumerate(zip(self.imgFrame.inputImages['Image'], self.imgFrame.inputImages['name'])):
+                row = 2 * (i // IMAGES_PER_COLUMN)
+                col = i % IMAGES_PER_COLUMN
                 
+                if len(name)>MAX_NAME_LENGTH:
+                    name = name[:MAX_NAME_LENGTH] + "..." + name.split('.')[-1]
+                
+                image_label = ctk.CTkLabel(self.scrollImageFrame, image=photo)
+                image_label.image = photo
+                image_label.grid(row=row, column=col, padx=(10, 10), pady=(5, 5))
+
+                name_label = ctk.CTkLabel(self.scrollImageFrame, text=name, font=CUSTOMFONT_H1)
+                name_label.grid(row=row+1, column=col, padx=(10, 10), pady=(5, 20))  # Place the name label below the image label      
+
+        # Trace the change for params
+        def var_change(self, *args):
+            self.imgFrame.update_params(ids=[i for i in range(len(self.imgFrame.inputImages['path']))],\
+                                        update_copies=self.copies_var.get(), update_shape=self.shape_options.get())
+            loggingInfo('[App] Change and update new parameters.')  
+
+
+        # Buttons click
+        def select_output_click(self):
+            select_folder(self.output_folder_var)
+
+        def add_images_click(self):
+            self.imgFrame.add_images()
+            self.ScrollableImageFrame()
+
+        def convert_click(self):
+            self.converter.convert_button_click(self.imgFrame.inputImages, self.output_folder_var)
+
+        def delete_click(self):
+            self.imgFrame.delete_images(detype='all')
+            print(self.imgFrame.inputImages)
+            self.ScrollableImageFrame()
+
+
 if __name__ == "__main__":
     app = App()
     app.mainloop()
