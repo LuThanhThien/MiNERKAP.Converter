@@ -1,14 +1,15 @@
+import os, sys
 from CTkListbox import *
-from src.utils import *
+from dist.src.utils import *
 import customtkinter as ctk
-from src.config import *
-from src.components.imgConverter import Converter
-from src.components.imgFrame import ImageFrame
+from dist.src.config import *
+from dist.src.components.imgConverter import Converter
+from dist.src.components.imgFrame import ImageFrame
 import warnings
-import time
 
 # Filter out the specific warning message
 warnings.filterwarnings("ignore")
+
 
 # APPERANCE
 ctk.set_appearance_mode("dark")
@@ -24,7 +25,7 @@ class App(ctk.CTk):
             self.converter.initiate_converter(self)
             self.imgFrame = ImageFrame()
             self.imgFrame.initiate_frame_obj(self)
-            self.title("Image to Word Converter")
+            self.title("MiNERKAP")
             self.resizable(False, False) # fixed window size
 
             # storage purposes
@@ -325,6 +326,5 @@ class App(ctk.CTk):
                 self.ScrollableImageFrame(ids=[])
 
 
-if __name__ == "__main__":
-    app = App()
-    app.mainloop()
+app = App()
+app.mainloop()
