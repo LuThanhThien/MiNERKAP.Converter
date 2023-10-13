@@ -6,6 +6,9 @@ IMG_EXTENSIONS = [".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".ppm", ".pgm"]
 
 IMG_TYPES = [("Image files", ';'.join(["*"+ex for ex in IMG_EXTENSIONS]))] + [("All files", "*.*")]
 
+# Copies
+COPY_RANGE = [1,100]
+
 # Shape: [height, width]
 IMG_SHAPES = {
     'Square': [16, 16],
@@ -46,26 +49,32 @@ DEFAULT_OUTPUT = os.path.expanduser('~/Desktop')
 # GUI
 # Font
 pyglet.font.add_file('src\\fonts\\Montserrat-Bold.ttf')
-CUSTOMFONT_H2 = ('Montserrat-Bold', 12)
+pyglet.font.add_file('src\\fonts\\Montserrat-Medium.ttf')
+CUSTOMFONT_H2 = ('Montserrat-Medium', 15)
 CUSTOMFONT_H1 = ('Montserrat-Bold', 14)
-CUSTOMFONT_H0 = ('Montserrat-Bold', 16)
+CUSTOMFONT_H0 = ('Montserrat-Bold', 15)
 
 # padding widgets
-PADX_START, PADX_END = (15, 5), (5, 15)
-PADY_START, PADY_END = (15, 5), (5, 15)
-PADX_ONI, PADY_ONI = (15, 15), (15, 15)
+PADX_START, PADX_END = (10, 5), (5, 10)
+PADY_START, PADY_END = (10, 5), (5, 10)
+PADX_ONI, PADY_ONI = (10, 10), (10, 10)
 
 PADX = (0, 5)
 PADY = (0, 5)
 
+# padding image color code
+FRAME_RGB = (92, 90, 88)
+ENTER_FRAME_RGB = (133, 121, 121)
+SELECT_FRAME_RGB = (196, 101, 96)
+
 # IMAGES FRAME
 # Fixed width and height for the displayed images
-IMAGE_WIDTH = 300
-IMAGE_HEIGHT = 300
-IMAGES_PER_COLUMN = 5
-MAX_NAME_LENGTH = 20
+FRAME_WIDTH = 300
+FRAME_HEIGHT = 300
+FRAMES_PER_COLUMN = 4
+MAX_NAME_LENGTH = 35
 
 # frame size
-CANVAS_WIDTH = (IMAGE_HEIGHT) * IMAGES_PER_COLUMN - 50
+CANVAS_WIDTH = (FRAME_HEIGHT) * FRAMES_PER_COLUMN + 200
 CANVAS_HEIGHT = 500
 

@@ -87,3 +87,8 @@ def crop_img(img:Image.Image, px_width, px_height, xc, yc) -> Image.Image:
             return cropped_img
         except Exception as e:
             raise CustomException(e, sys)
+        
+def from_rgb(rgb):
+    """translates an rgb tuple of int to a tkinter friendly color code
+    """
+    return "#%02x%02x%02x" % rgb   

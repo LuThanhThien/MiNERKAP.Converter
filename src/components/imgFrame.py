@@ -23,6 +23,8 @@ class ImageFrame:
                 'name': [],
                 'Image': [],
             }
+        self.gridImageFrames = []
+        self.selectedIndices = []
         self.default_shape:str
         self.default_copies:int
 
@@ -50,18 +52,16 @@ class ImageFrame:
             # open image for image frame
             
             image = Image.open(self.inputImages['path'][-1])
-                
+
             # Add padding for those images not square
             width, height = image.size
+            iRatio = width / height
             if width > height:
-                padding = (width - height) // 2
-                image = ImageOps.expand(image, border=(0, padding, 0, padding), fill='grey')
-            elif height > width:
-                padding = (height - width) // 2
-                image = ImageOps.expand(image, border=(padding, 0, padding, 0), fill='grey')
-
+                image = image.resize((FRAME_WIDTH + 100, int((FRAME_WIDTH + 100) / iRatio)))
+            elif height >= width:
+                image = image.resize((int(iRatio * (FRAME_HEIGHT + 100)), FRAME_HEIGHT + 100))
             # Resize the image to the fixed width and height
-            image = image.resize((IMAGE_WIDTH, IMAGE_HEIGHT))
+            
             photo = ImageTk.PhotoImage(image)
             self.inputImages['Image'].append(photo)
 
@@ -74,7 +74,7 @@ class ImageFrame:
                 self.inputImages['xc'].append(0) 
                 self.inputImages['yc'].append(0)
                 raise CustomException(e, sys)
-
+            
         except Exception as e:
             raise CustomException(e, sys)
 
@@ -97,7 +97,6 @@ class ImageFrame:
                             self.inputImages['path'].append(path)
                             self.initiate_images()       
            
-
                 if len(exceed_names) > 0 and len(exceed_names) < len(file_paths):
                     messagebox.showwarning('Warning', """Some images were not loaded due to exceeding limit size error""")
                 elif len(exceed_names) == len(file_paths):
@@ -111,14 +110,20 @@ class ImageFrame:
             raise CustomException(e, sys)
     
     
-    def update_params(self, ids, update_shape, update_copies):
+    def update_params(self, ids, params:str=None, update_shape:str=None, update_copies:int=None):
         try:
-            for i in ids:
-                self.inputImages['shape'][i] = update_shape
-                self.inputImages['copies'][i] = update_copies
-                self.inputImages['px_width'][i] = IMG_SHAPES[self.inputImages['shape'][i]][0]
-                self.inputImages['px_height'][i] = IMG_SHAPES[self.inputImages['shape'][i]][1]
+            if params == None:
+                return
             
+            for i in ids:
+                if params == 'shape' or params == 'all':
+                    self.inputImages['shape'][i] = update_shape
+                    self.inputImages['px_width'][i] = IMG_SHAPES[self.inputImages['shape'][i]][0]
+                    self.inputImages['px_height'][i] = IMG_SHAPES[self.inputImages['shape'][i]][1]
+                
+                if params == 'copies' or params == 'all':
+                    self.inputImages['copies'][i] = update_copies
+
         except Exception as e:
             raise CustomException(e, sys)
 
@@ -156,7 +161,6 @@ class ImageFrame:
 
             last_len = len(self.inputImages['path'])
             loggingInfo(f"[ImageFrame] Total {init_len-last_len} image(s) deleted from image frame.")
-            print(self.inputImages)
 
         except Exception as e:
             raise CustomException(e, sys)

@@ -19,7 +19,6 @@ class Converter:
         self.output_folder:str 
         self.root = None
         
-
     def initiate_converter(self, root):
         self.root = root
 
