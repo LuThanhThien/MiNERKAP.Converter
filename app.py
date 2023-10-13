@@ -35,6 +35,7 @@ class App(ctk.CTk):
             # row 0, frame 1: parameters frame ----------------------------------------------------------------------------------
             self.param_frame = ctk.CTkFrame(self)
             self.param_frame.grid(row=0, column=0, padx=(15, 15), pady=(15, 0), sticky="nsew")
+            self.param_frame.bind("<Button-1>", lambda event: self.param_frame.focus_set())
             
             # Add a label and entry for user input
             self.copies_label = ctk.CTkLabel(master=self.param_frame, text="Copies:", font=CUSTOMFONT_H0)
@@ -46,6 +47,8 @@ class App(ctk.CTk):
             self.copies_entry.grid(row=0, column=1, padx=0, pady=PADY_ONI, sticky="nsew")
             self.copies_entry.bind("<Return>", self.validate_copies)
 
+
+
             # Create a label for the shape selection
             self.shape_label = ctk.CTkLabel(master=self.param_frame, text="Shape:", font=CUSTOMFONT_H0)
             self.shape_label.grid(row=0, column=2, padx=PADX_ONI, pady=PADY_ONI, sticky='e')
@@ -53,9 +56,9 @@ class App(ctk.CTk):
             # Create a options for shape selection
             self.shape_var = ctk.StringVar()
             self.shape_display = ctk.StringVar()
-            self.shape_combobox = ctk.CTkComboBox(master=self.param_frame, values=list(IMG_SHAPES.keys()), font=CUSTOMFONT_H0,\
+            self.shape_options = ctk.CTkOptionMenu(master=self.param_frame, values=list(IMG_SHAPES.keys()), font=CUSTOMFONT_H0,\
                                                    variable=self.shape_display, command=self.validate_shape)
-            self.shape_combobox.grid(row=0, column=3, padx=0, pady=PADY_ONI, sticky="w")   
+            self.shape_options.grid(row=0, column=3, padx=0, pady=PADY_ONI, sticky="w")   
 
 
             # Create and configure widgets for selecting output folder
@@ -84,7 +87,7 @@ class App(ctk.CTk):
             self.delete_all_button.grid(row=1, column=0, padx=(120+40,5), pady=PADX_START, sticky="w")
     
 
-            # row 2, frame 2: Images frame ----------------------------------------------------------------------------------
+            # row 1, frame 2: Images frame ----------------------------------------------------------------------------------
             # Trace for var change 
             self.copies_var.trace('w', self.copies_change)
             self.shape_var.trace('w', self.shape_change)
@@ -100,11 +103,11 @@ class App(ctk.CTk):
 
             # initiate entry as disable
             self.copies_entry.configure(state='disabled')
-            self.shape_combobox.configure(state='disabled')
+            self.shape_options.configure(state='disabled')
 
 
         # IMAGE FRAME --------------------------------------------------------------------------------------------------
-        def ScrollableImageFrame(self, ids):
+        def ScrollableImageFrame(self, ids=None):
             try:
                 if ids == []:
                     # remove the widgets from the grid
@@ -115,6 +118,9 @@ class App(ctk.CTk):
                     self.scrollImageFrame = ctk.CTkScrollableFrame(self, width=CANVAS_WIDTH-120, height=CANVAS_HEIGHT)
                     self.scrollImageFrame.grid(row=2, column=0, padx=(15, 15), pady=(15, 15), sticky="nsew")
                     return
+                
+                if ids == None:
+                    ids = list(range(len(self.gridImageFrame)))
 
                 self.bind("<Control-a>", self.select_all_images)
                 self.scrollImageFrame.bind("<Button-1>", self.deselect_all_images)
@@ -159,7 +165,7 @@ class App(ctk.CTk):
                     self.info_frame[i].grid_propagate(0)
                     name_label = ctk.CTkLabel(self.info_frame[i], text=name, font=CUSTOMFONT_H0)
                     name_label.grid(row=0, column=0, padx=(2, 0), pady=(0, 0), sticky='w')  # Place the name label below the image label
-                    shape_label = ctk.CTkLabel(self.info_frame[i], text=f'Shape: {shape}, copies: {copies}', font=CUSTOMFONT_H2)
+                    shape_label = ctk.CTkLabel(self.info_frame[i], text=f'Shape: {shape} - Copies: {copies}', font=CUSTOMFONT_H2)
                     shape_label.grid(row=1, column=0, padx=(2, 0), pady=(2, 0), sticky='w')  # Place the name label below the image label
 
                     # Configure events
@@ -170,7 +176,7 @@ class App(ctk.CTk):
                     image_label.bind("<Enter>", lambda event, index=i: self.mouse_enter_frame(event, index))
                     image_label.bind("<Leave>", lambda event, index=i: self.mouse_leave_frame(event, index))
                     image_label.bind("<Button-1>", lambda event, index=i: self.on_image_click(event, index))
-
+                    
                     self.info_frame[i].bind("<Button-1>", self.deselect_all_images)
                     name_label.bind("<Button-1>", self.deselect_all_images)
                     shape_label.bind("<Button-1>", self.deselect_all_images)
@@ -207,7 +213,6 @@ class App(ctk.CTk):
 
             # Update the appearance of selected images
             self.update_image_appearance()
-            self.display_params()
         
         def select_all_images(self, event):
             self.selectedIndices = list(range(len(self.gridImageFrame)))
@@ -233,7 +238,7 @@ class App(ctk.CTk):
                     self.gridImageFrame[i].configure(fg_color=from_rgb(SELECT_FRAME_RGB))
                 else:
                     self.gridImageFrame[i].configure(fg_color=from_rgb(FRAME_RGB))
-            
+            self.display_params()
             
         # Display params of selected images 
         def display_params(self):
@@ -254,24 +259,22 @@ class App(ctk.CTk):
 
             if len(self.selectedIndices) == 0:
                 self.copies_entry.configure(state='disabled')
-                self.shape_combobox.configure(state='disabled')
+                self.shape_options.configure(state='disabled')
                 self.copies_display.set(value='')
                 self.shape_display.set(value='')
             else:
                 self.copies_entry.configure(state='normal')
-                self.shape_combobox.configure(state='normal')
+                self.shape_options.configure(state='normal')
 
 
         # UPDATE PARAMS --------------------------------------------------------------------------------------------------
         def copies_change(self, *args):
             self.imgFrame.update_params(ids=self.selectedIndices, params='copies', update_copies=int(self.copies_var.get()))
             self.ScrollableImageFrame(ids=self.selectedIndices)
-            loggingInfo(f"[App] Updated copies for indices {set(self.selectedIndices)} into {self.copies_var.get()} completely.")
 
         def shape_change(self, *args):
             self.imgFrame.update_params(ids=self.selectedIndices, params='shape', update_shape=self.shape_var.get())
             self.ScrollableImageFrame(ids=self.selectedIndices)
-            loggingInfo(f"[App] Updated shape for indices {set(self.selectedIndices)} into {self.shape_var.get()} completely.")
 
         # validate copies range
         def validate_copies(self, event):
@@ -282,8 +285,10 @@ class App(ctk.CTk):
                     self.copies_var.set(value=copies)
                 else:
                     messagebox.showerror("Invalid Input", "Copies should be an integer between 1 and 100")
+                    self.display_params()
             except ValueError:
                 messagebox.showerror("Invalid Input", "Copies should be an integer between 1 and 100")
+                self.display_params()
 
         # validate shape
         def validate_shape(self, event):
@@ -312,9 +317,12 @@ class App(ctk.CTk):
             self.converter.convert_button_click(self.imgFrame.inputImages, self.output_folder_var)
 
         def delete_click(self):
-            self.imgFrame.delete_images(detype='all')
-            self.gridImageFrame.clear()
-            self.ScrollableImageFrame(ids=[])
+            ids = list(range(len(self.gridImageFrame)))
+            is_delete, detype = self.imgFrame.delete_images(ids)
+            if is_delete == True and detype == 'all':
+                self.gridImageFrame.clear()
+                self.info_frame.clear()
+                self.ScrollableImageFrame(ids=[])
 
 
 if __name__ == "__main__":

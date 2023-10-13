@@ -28,14 +28,18 @@ def select_folder(folder_var) -> None:
     except Exception as e:
         raise CustomException(e, sys)
 
-def confirm_delete_images(detype:str):
+def confirm_delete_images(detype:str, ids:list):
     try:
         if detype == 'all':
-            # Generate a message with the list of exceeding images
             message = "All images will be deleted. Do you want to continue?"
 
             response = messagebox.askquestion("Delete all images", message)
+        elif detype == 'batch':
+            message = f"{len(ids)} images will be deleted. Do you want to continue?"
+
+            response = messagebox.askquestion("Delete images", message)
         return response.lower() == "yes"
+    
     
     except Exception as e:
         raise CustomException(e, sys)

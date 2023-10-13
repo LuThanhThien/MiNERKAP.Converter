@@ -57,9 +57,9 @@ class ImageFrame:
             width, height = image.size
             iRatio = width / height
             if width > height:
-                image = image.resize((FRAME_WIDTH + 100, int((FRAME_WIDTH + 100) / iRatio)))
+                image = image.resize((FRAME_WIDTH + 50, int((FRAME_WIDTH + 50) / iRatio)))
             elif height >= width:
-                image = image.resize((int(iRatio * (FRAME_HEIGHT + 100)), FRAME_HEIGHT + 100))
+                image = image.resize((int(iRatio * (FRAME_HEIGHT + 50)), FRAME_HEIGHT + 50))
             # Resize the image to the fixed width and height
             
             photo = ImageTk.PhotoImage(image)
@@ -120,9 +120,10 @@ class ImageFrame:
                     self.inputImages['shape'][i] = update_shape
                     self.inputImages['px_width'][i] = IMG_SHAPES[self.inputImages['shape'][i]][0]
                     self.inputImages['px_height'][i] = IMG_SHAPES[self.inputImages['shape'][i]][1]
-                
+                    loggingInfo(f"[ImageFrame] Updated shape for indices {set(ids)} into {update_shape} completely.")
                 if params == 'copies' or params == 'all':
                     self.inputImages['copies'][i] = update_copies
+                    loggingInfo(f"[ImageFrame] Updated copies for indices {set(ids)} into {update_copies} completely.")
 
         except Exception as e:
             raise CustomException(e, sys)
@@ -132,36 +133,38 @@ class ImageFrame:
         pass
 
 
-    def delete_images(self, detype:str):
+    def delete_images(self, ids:list):
         try:
             
             # if no images in list, do nothing
-            if len(self.inputImages['path'])==0:
-                return
+            if len(self.inputImages['path']) == 0 or len(ids) == 0:
+                return None, None
             
-            # assert deleting type
-            if detype not in ['all', 'batch']:
-                loggingInfo(f"[ImageFrame] Undefined delete type {detype}")
-                raise CustomException(f"Delete type {detype} is not defined", sys)
-            
-
             init_len = len(self.inputImages['path'])
 
-            if detype == 'all':
-                is_delete = confirm_delete_images(detype=detype)
+            if len(self.inputImages['path']) == len(ids):
+                detype = 'all'
+                is_delete = confirm_delete_images(detype='all', ids=[])
 
                 if is_delete:
                     loggingInfo(f"[ImageFrame] Deleting all images.")
                     for key in self.inputImages.keys():
                         self.inputImages[key].clear()
+            else:
+                detype = 'batch'
+                is_delete = confirm_delete_images(detype='batch', ids=ids)
 
-            elif detype == 'batch':
-                del_img = []
-                loggingInfo(f"[ImageFrame] Deleting {len(del_img)} selected images.")
+                if is_delete:
+                    loggingInfo(f"[ImageFrame] Deleting {len(ids)} images.")
+                    for key in self.inputImages.keys():
+                        self.inputImages[key] = [self.inputImages[key][i] for i in range(init_len) if i not in ids]
+
+                loggingInfo(f"[ImageFrame] Deleting {len(ids)} selected images.")
 
             last_len = len(self.inputImages['path'])
             loggingInfo(f"[ImageFrame] Total {init_len-last_len} image(s) deleted from image frame.")
 
+            return is_delete, detype
         except Exception as e:
             raise CustomException(e, sys)
         
