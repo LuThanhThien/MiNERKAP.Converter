@@ -140,7 +140,7 @@ class App(ctk.CTk):
                     col = (i) % FRAMES_PER_COLUMN
                     
                     if len(name)>MAX_NAME_LENGTH:
-                        name = name[:MAX_NAME_LENGTH] + "..." + name.split('.')[-1]
+                        name = name[:MAX_NAME_LENGTH-6] + "..." + name.split('.')[-1]
 
                     # init frames
                     if i < len(self.gridImageFrame):
@@ -167,7 +167,7 @@ class App(ctk.CTk):
                     # image infro
                     self.info_frame[i].grid(row=row+1, column=col, padx=(10, 10), pady=(5, 20))
                     self.info_frame[i].grid_propagate(0)
-                    name_label = ctk.CTkLabel(self.info_frame[i], text=name, font=CUSTOMFONT_H0)
+                    name_label = ctk.CTkLabel(self.info_frame[i], text=name, font=CUSTOMFONT_H1)
                     name_label.grid(row=0, column=0, padx=(2, 0), pady=(0, 0), sticky='w')  # Place the name label below the image label
                     shape_label = ctk.CTkLabel(self.info_frame[i], text=f'Shape: {shape} - Copies: {copies}', font=CUSTOMFONT_H2)
                     shape_label.grid(row=1, column=0, padx=(2, 0), pady=(2, 0), sticky='w')  # Place the name label below the image label
