@@ -1,0 +1,14 @@
+Version 1.0.0 - released 2023-10-13
+
+- delete all image but not clear the entries
+- problems with cropping by combo
+- white background color needed to be border grey
+- groups set of pics that they display and in-line together
+- option: open file/ folder of file when done or not
+- user can adjust the size of each type shape and choose default folder, ...
+- for small number of copies, the next one do not enter to save space
+- make the combo in last page, if there are many combo, arrange them in the same line
+- make a custom shape for user freely adjust
+- show height x width of shape on task bar
+- ask user when exit app if there are images has been import
+- user can save app files that they can open later

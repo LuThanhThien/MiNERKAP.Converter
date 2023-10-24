@@ -5,4 +5,6 @@ dill
 customtkinter
 CTkListbox 
 pyglet
+reportlab
+docx
 -e .
